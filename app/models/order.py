@@ -1,16 +1,23 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
-from sqlalchemy.orm import relationship
-from app.database import Base
+from sqlmodel import SQLModel, Field, Relationship
+from datetime import datetime
+from typing import Optional
+from sqlalchemy import Column, DateTime, func
 
-class Order(Base):
+
+class OrderBase(SQLModel):
+    user_id: int = Field(foreign_key="users.id")
+    product_id: int = Field(foreign_key="products.id")
+    quantity: int = Field(default=1, ge=1)
+    status: str = Field(default="created", max_length=20)
+    created_at: Optional[datetime] = Field(
+        sa_column=Column(DateTime(timezone=True),
+                         default=func.now()
+                         ))
+
+class Order(OrderBase, table=True):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
-    quantity = Column(Integer, default=1)
-    status = Column(String(20), default="created")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    id: Optional[int] = Field(default=None, primary_key=True)
 
-    user = relationship("User", back_populates="orders")
-    product = relationship("Product")
+    user: "User" = Relationship(back_populates="orders")
+    product: "Product" = Relationship(back_populates="orders")

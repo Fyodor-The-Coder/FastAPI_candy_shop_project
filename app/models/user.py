@@ -1,13 +1,15 @@
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import relationship
-from app.database import Base
+from sqlmodel import SQLModel, Field, Relationship
+from typing import List, Optional
 
-class User(Base):
+class UserBase(SQLModel):
+    username: str = Field(index=True)
+    email: str = Field(unique=True, index=True)
+
+
+class User(UserBase, table=True):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    hashed_password = Column(String(200), nullable=False)
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hashed_password: str
 
-    orders = relationship("Order", back_populates="user")
+    orders: List["Order"] = Relationship(back_populates="user")
