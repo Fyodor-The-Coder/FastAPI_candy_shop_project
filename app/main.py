@@ -11,5 +11,5 @@ def root():
     return {"message": "Hello, world!"}
 
 app.include_router(user_router, prefix="/auth")
-app.include_router(product_router)
+app.include_router(product_router, prefix="/products")
 app.include_router(order_router)
