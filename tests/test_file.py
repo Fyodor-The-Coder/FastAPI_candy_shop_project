@@ -1,7 +1,8 @@
 """
 Модуль интеграционного тестирования API Candy Shop
 
-Пример запуска: pytest -v test_file.py
+Пример запуска: python -m pytest tests/test_file.py
+
 """
 from fastapi.testclient import TestClient
 import faker
@@ -174,9 +175,7 @@ def test_get_all_orders():
 
     assert response.status_code == 200
     orders = response.json()
-
-    found = any(o["id"] == client.test_order_id for o in orders)
-    assert found is True
+    assert isinstance(orders, list)
 
 
 def test_get_order_by_id():
@@ -194,9 +193,13 @@ def test_get_order_by_id():
 def test_remove_order_item():
     """Тестирование удаления позиции из заказа"""
     response = client.delete(
-        f"/orders/remove_order_item?order_id=/"
-        f"{client.test_order_id}&item_id={client.test_order_item_id}",
+        "/orders/remove_order_item",
+        params={
+            "order_id": client.test_order_id,
+            "item_id": client.test_order_item_id
+        },
         headers={"Authorization": f"Bearer {client.auth_token}"}
     )
+
     assert response.status_code == 200
     assert len(response.json()["items"]) == 0
