@@ -1,41 +1,27 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 class ProductBase(BaseModel):
-    name: str = Field(..., example="Шоколадный торт")
-    description: Optional[str] = Field(
-        default=None,
-        example="Нежный шоколадный торт с ягодной прослойкой"
-    )
-    price: float = Field(..., example=1200.50, gt=0)
-    category: str = Field(..., example="Торты")
-    ingredients: List[str] = Field(
-        ...,
-        example=["мука", "сахар", "какао", "яйца"],
-        min_length=3
-    )
-    stock: int = Field(..., example=10, ge=0)
+    name: str
+    description: Optional[str]
+    price: float
+    category: str
+    ingredients: List[str]
+    stock: int
 
 class ProductCreate(ProductBase):
     pass
 
 class ProductUpdate(BaseModel):
-    name: Optional[str] = Field(None, example="Новый шоколадный торт")
-    description: Optional[str] = Field(
-        None,
-        example="Обновленный рецепт с вишней"
-    )
-    price: Optional[float] = Field(None, example=1500.0, gt=0)
-    category: Optional[str] = Field(None, example="Торты")
-    ingredients: Optional[List[str]] = Field(
-        None,
-        example=["мука", "сахар", "какао", "вишня"],
-        min_length=3
-    )
-    stock: Optional[int] = Field(None, example=15, ge=0)
+    name: Optional[str]
+    description: Optional[str]
+    price: Optional[float]
+    category: Optional[str]
+    ingredients: Optional[List[str]]
+    stock: Optional[int]
 
 class ProductResponse(ProductBase):
-    id: int = Field(..., example=1)
+    id: int
 
     class Config:
         from_attributes = True
