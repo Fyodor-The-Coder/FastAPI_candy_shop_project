@@ -1,3 +1,6 @@
+"""
+Модуль API-эндпоинтов для управления пользователями и аутентификации
+"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
@@ -15,6 +18,9 @@ async def register_user(
         user_data: UserCreate,
         db: Session = Depends(get_db)
 ):
+    """
+    Регистрация нового пользователя в системе
+    """
     existing_user = db.exec(
         select(User).where(User.email == user_data.email)
     ).first()
@@ -47,6 +53,9 @@ async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
 ):
+    """
+    Аутентификация пользователя и получение JWT токена
+    """
     user = db.exec(select(User).where(User.email == form_data.username)).first()
 
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -66,4 +75,7 @@ async def login(
 async def get_current_user_profile(
         current_user: User = Depends(get_current_user)
 ):
+    """
+    Получение профиля текущего авторизованного пользователя
+    """
     return current_user

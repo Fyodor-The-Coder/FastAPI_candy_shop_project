@@ -1,3 +1,8 @@
+"""
+Модуль API для управления заказами и их позициями
+"""
+
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
@@ -8,12 +13,13 @@ from app.business_logic.recommendations import RecommendationEngine
 from app.models.order import Order, OrderItem
 from app.models.user import User
 from app.models.product import Product
-from typing import List
 
 router = APIRouter(tags=["orders"])
 
-
 def get_order_or_404(order_id: int, db: Session, user: User):
+    """
+    Вспомогательная функция для получения заказа с проверкой прав доступа
+    """
     order = db.query(Order).options(
         joinedload(Order.items).joinedload(OrderItem.product)
     ).get(order_id)
@@ -31,13 +37,7 @@ def get_all_orders(
         user: User = Depends(get_current_user)
 ):
     """
-    Возвращает список всех заказов текущего пользователя.
-
-    Включает полную информацию по каждому заказу:
-    - ID заказа
-    - Статус
-    - Дата создания
-    - Список товаров с ценами и количеством
+    Получение полной истории заказов текущего пользователя
     """
     orders = (
         db.query(Order)
@@ -46,7 +46,7 @@ def get_all_orders(
             .joinedload(OrderItem.product)
         )
         .filter(Order.user_id == user.id)
-        .order_by(Order.created_at.desc())
+        .order_by(Order.created_at.description())
         .all()
     )
     return orders
@@ -59,13 +59,7 @@ def get_order(
         user: User = Depends(get_current_user)
 ):
     """
-    Возвращает детальную информацию о конкретном заказе по его ID.
-
-    Требования:
-    - Заказ должен принадлежать текущему пользователю
-    - Заказ должен существовать
-
-    Возвращает 404 ошибку если заказ не найден или нет прав доступа
+    Получение детальной информации о конкретном заказе
     """
     order = (
         db.query(Order)
@@ -91,7 +85,7 @@ def create_order(
         user: User = Depends(get_current_user)
 ):
     """
-    Создание нового пустого заказа
+    Инициализация нового заказа
     """
     db_order = Order(user_id=user.id)
     db.add(db_order)
@@ -107,6 +101,7 @@ def add_order_item(
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user)
 ):
+    """Добавление товара в существующий заказ"""
     order = get_order_or_404(order_id, db, user)
     product = db.query(Product).get(item.product_id)
 
@@ -123,9 +118,12 @@ def add_order_item(
         product.stock -= item.quantity
         db.add(db_item)
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(400, "Товар уже в заказе")
+        raise HTTPException(
+            status_code=400,
+            detail="Товар уже в заказе"
+        ) from exc
 
     db.refresh(order)
     return order
@@ -136,10 +134,13 @@ def update_order_item(
         order_id: int,
         item_id: int,
         quantity: int = Body(..., gt=0,example=2,
-        description="Новое количество товара (должно быть больше 0"),
+        description="Новое количество товара (должно быть больше 0)"),
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user)
 ):
+    """
+    Изменение количества товара в позиции заказа
+    """
     order = get_order_or_404(order_id, db, user)
     item = next((i for i in order.items if i.id == item_id), None)
 
@@ -168,6 +169,9 @@ def remove_order_item(
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user)
 ):
+    """
+    Удаление позиции из заказа с возвратом товара на склад
+    """
     order = get_order_or_404(order_id, db, user)
     item = next((i for i in order.items if i.id == item_id), None)
 

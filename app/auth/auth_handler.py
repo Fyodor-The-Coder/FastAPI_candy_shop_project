@@ -1,17 +1,23 @@
+"""
+Модуль для работы с аутентификацией: хеширование паролей и генерация JWT токенов
+"""
+from datetime import datetime, timedelta
 from passlib.context import CryptContext
 from jose import jwt
-from datetime import datetime, timedelta
 from app.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Проверка соответствие пароля его хешу"""
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
+    """Генерация безопасный хеш пароля"""
     return pwd_context.hash(password)
 
 def create_access_token(data: dict) -> str:
+    """Создание JWT access токен с ограниченным сроком действия"""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES

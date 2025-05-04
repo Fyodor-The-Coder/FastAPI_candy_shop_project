@@ -1,3 +1,8 @@
+"""
+Модуль интеграционного тестирования API Candy Shop
+
+Пример запуска: pytest -v test_file.py
+"""
 from fastapi.testclient import TestClient
 import faker
 from app.main import app
@@ -12,6 +17,7 @@ client.new_user_id = 0
 client.auth_token = ""
 
 def test_register():
+    """Тестирование регистрации нового пользователя"""
     response = client.post("/auth/register",
                            json = {"email": client.fake_user_email,
                                    "password": client.fake_user_password,
@@ -22,6 +28,7 @@ def test_register():
 
 
 def test_login():
+    """Тестирование аутентификации пользователя"""
     response = client.post("/auth/login",
                            data = {"username": client.fake_user_email,
                                    "password": client.fake_user_password}
@@ -31,6 +38,7 @@ def test_login():
 
 
 def test_me():
+    """Тестирование получения профиля текущего пользователя"""
     response = client.get("/auth/me", headers={"Authorization": f"Bearer {client.auth_token}"})
     assert response.status_code == 200
 
@@ -44,6 +52,7 @@ def test_me():
 
 
 def test_create_product():
+    """Тестирование создания нового товара"""
     product_data = {
         "name": "Test Product",
         "description": "Test Description",
@@ -71,6 +80,7 @@ def test_create_product():
 
 
 def test_get_all_products():
+    """Тестирование получения списка товаров"""
     response = client.get("/products/view_all_products")
     assert response.status_code == 200
 
@@ -89,6 +99,7 @@ def test_get_all_products():
 
 
 def test_get_product_by_id():
+    """Тестирование получения товара по ID"""
     response = client.get(
         f"/products/get_product_by_ID?product_id={client.test_product_id}"
     )
@@ -103,6 +114,7 @@ def test_get_product_by_id():
     assert response.status_code == 404
 
 def test_delete_product():
+    """Тестирование удаления товара"""
     response = client.delete(
         f"/products/delete_product_by_ID?product_id={client.test_product_id}",
         headers={"Authorization": f"Bearer {client.auth_token}"}
@@ -115,6 +127,7 @@ def test_delete_product():
     assert response.status_code == 404
 
 def test_create_order():
+    """Тестирование создания нового заказа"""
     response = client.post(
         "/orders/create_new_order",
         headers={"Authorization": f"Bearer {client.auth_token}"}
@@ -124,6 +137,7 @@ def test_create_order():
 
 
 def test_add_order_item():
+    """Тестирование добавления позиции в заказ"""
     product_data = {
         "name": "Test Product",
         "description": "Test Description",
@@ -152,6 +166,7 @@ def test_add_order_item():
 
 
 def test_get_all_orders():
+    """Тестирование получения списка заказов"""
     response = client.get(
         "/orders/get_all_orders",
         headers={"Authorization": f"Bearer {client.auth_token}"}
@@ -165,6 +180,7 @@ def test_get_all_orders():
 
 
 def test_get_order_by_id():
+    """Тестирование получения заказа по ID"""
     response = client.get(
         f"/orders/get_the_order_using_ID?order_id={client.test_order_id}",
         headers={"Authorization": f"Bearer {client.auth_token}"}
@@ -176,8 +192,10 @@ def test_get_order_by_id():
     assert order["user_id"] == client.new_user_id
 
 def test_remove_order_item():
+    """Тестирование удаления позиции из заказа"""
     response = client.delete(
-        f"/orders/remove_order_item?order_id={client.test_order_id}&item_id={client.test_order_item_id}",
+        f"/orders/remove_order_item?order_id=/"
+        f"{client.test_order_id}&item_id={client.test_order_item_id}",
         headers={"Authorization": f"Bearer {client.auth_token}"}
     )
     assert response.status_code == 200

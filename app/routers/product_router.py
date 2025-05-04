@@ -1,14 +1,16 @@
+"""
+Модуль API-эндпоинтов для управления товарами магазина.
+Содержит операции CRUD (Create, Read, Update, Delete) для работы с товарами
+"""
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models.product import Product
-from app.schemas.product_schema import (ProductCreate, ProductResponse, ProductUpdate, ProductShortInfo)
+from app.schemas.product_schema import \
+    (ProductCreate, ProductResponse, ProductUpdate, ProductShortInfo)
 from app.database import get_db
-from app.auth.dependencies import get_current_user
-from app.models.user import User
 
 router = APIRouter(tags=["Товары"])
-
 
 @router.post(
     "/create_a_new_product_item",
@@ -18,10 +20,9 @@ router = APIRouter(tags=["Товары"])
 def create_product(
         product: ProductCreate,
         db: Session = Depends(get_db),
-        user: User = Depends(get_current_user)
 ):
     """"
-    Создать новый товар в БД
+    Создание нового товара в каталоге
     """
     db_product = Product(**product.dict())
     db.add(db_product)
@@ -33,7 +34,7 @@ def create_product(
 @router.get("/view_all_products", response_model=List[ProductShortInfo])
 def get_all_products(db: Session = Depends(get_db)):
     """
-    Получить краткую информацию о всех товарах (id, название, цена, остаток)
+    Получение списка всех товаров с краткой информацией
     """
     return db.query(Product).all()
 
@@ -41,7 +42,7 @@ def get_all_products(db: Session = Depends(get_db)):
 @router.get("/get_product_by_ID", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
     """"
-    Получить товар по конкретному ID
+    Получение полной информации о товаре по ID
     """
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
@@ -57,10 +58,9 @@ def update_product(
         product_id: int,
         product_data: ProductUpdate,
         db: Session = Depends(get_db),
-        user: User = Depends(get_current_user)
 ):
     """"
-    Обновить товар по конкретному ID
+    Обновление данных товара
     """
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
@@ -83,10 +83,9 @@ def update_product(
 def delete_product(
         product_id: int,
         db: Session = Depends(get_db),
-        user: User = Depends(get_current_user)
 ):
     """"
-    Удалить поля по конкретному ID
+    Удаление товара из системы
     """
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
@@ -97,4 +96,3 @@ def delete_product(
 
     db.delete(db_product)
     db.commit()
-    return

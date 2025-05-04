@@ -1,8 +1,12 @@
+"""
+Модуль аутентификации и авторизации пользователей через JWT токены
+"""
+
+from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlmodel import Session, select
-from typing import Annotated
 
 from app.config import settings
 from app.models.user import User
@@ -14,6 +18,7 @@ async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     db: Session = Depends(get_db)
 ) -> User:
+    """Зависимость для получения текущего авторизованного пользователя"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Неверные учётные данные",
@@ -29,8 +34,8 @@ async def get_current_user(
         user_id: int = int(payload.get("sub"))
         if not user_id:
             raise credentials_exception
-    except (JWTError, ValueError):
-        raise credentials_exception
+    except (JWTError, ValueError) as exc:
+        raise credentials_exception from exc
 
     user = db.exec(select(User).where(User.id == user_id)).first()
     if not user:
