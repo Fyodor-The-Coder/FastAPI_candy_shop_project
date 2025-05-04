@@ -113,3 +113,72 @@ def test_delete_product():
         f"/products/get_product_by_ID?product_id={client.test_product_id}"
     )
     assert response.status_code == 404
+
+def test_create_order():
+    response = client.post(
+        "/orders/create_new_order",
+        headers={"Authorization": f"Bearer {client.auth_token}"}
+    )
+    assert response.status_code == 200
+    client.test_order_id = response.json()["id"]
+
+
+def test_add_order_item():
+    product_data = {
+        "name": "Test Product",
+        "description": "Test Description",
+        "price": 100.0,
+        "category": "Test",
+        "ingredients": ["test"],
+        "stock": 10
+    }
+
+    product_response = client.post(
+        "/products/create_a_new_product_item",
+        json=product_data,
+        headers={"Authorization": f"Bearer {client.auth_token}"}
+    )
+    assert product_response.status_code == 201
+    client.test_product_id = product_response.json()["id"]
+
+    item_data = {"product_id": client.test_product_id, "quantity": 2}
+    response = client.post(
+        f"/orders/add_new_order_item?order_id={client.test_order_id}",
+        json=item_data,
+        headers={"Authorization": f"Bearer {client.auth_token}"}
+    )
+    assert response.status_code == 200
+    client.test_order_item_id = response.json()["items"][0]["id"]
+
+
+def test_get_all_orders():
+    response = client.get(
+        "/orders/get_all_orders",
+        headers={"Authorization": f"Bearer {client.auth_token}"}
+    )
+
+    assert response.status_code == 200
+    orders = response.json()
+
+    found = any(o["id"] == client.test_order_id for o in orders)
+    assert found is True
+
+
+def test_get_order_by_id():
+    response = client.get(
+        f"/orders/get_the_order_using_ID?order_id={client.test_order_id}",
+        headers={"Authorization": f"Bearer {client.auth_token}"}
+    )
+
+    assert response.status_code == 200
+    order = response.json()
+
+    assert order["user_id"] == client.new_user_id
+
+def test_remove_order_item():
+    response = client.delete(
+        f"/orders/remove_order_item?order_id={client.test_order_id}&item_id={client.test_order_item_id}",
+        headers={"Authorization": f"Bearer {client.auth_token}"}
+    )
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 0
