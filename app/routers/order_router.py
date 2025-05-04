@@ -4,6 +4,7 @@
 
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Body
+from sqlalchemy import desc
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from app.schemas.order_schema import OrderResponse, OrderItemCreate
@@ -14,7 +15,7 @@ from app.models.order import Order, OrderItem
 from app.models.user import User
 from app.models.product import Product
 
-router = APIRouter(tags=["orders"])
+router = APIRouter(tags=["Заказы"])
 
 def get_order_or_404(order_id: int, db: Session, user: User):
     """
@@ -31,7 +32,7 @@ def get_order_or_404(order_id: int, db: Session, user: User):
 
 
 @router.get("/get_all_orders", response_model=List[OrderResponse],
-            summary="Получить все заказы пользователя")
+            summary="Просмотреть все заказы пользователя")
 def get_all_orders(
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user)
@@ -46,13 +47,14 @@ def get_all_orders(
             .joinedload(OrderItem.product)
         )
         .filter(Order.user_id == user.id)
-        .order_by(Order.created_at.description())
+        .order_by(desc(Order.created_at))
         .all()
     )
     return orders
 
 
-@router.get("/get_the_order_using_ID", response_model=OrderResponse, summary="Получить заказ по ID")
+@router.get("/get_the_order_using_ID", response_model=OrderResponse,
+            summary="Просмотреть данные о заказе по ID")
 def get_order(
         order_id: int,
         db: Session = Depends(get_db),
@@ -79,7 +81,8 @@ def get_order(
 
     return order
 
-@router.post("/create_new_order", response_model=OrderResponse)
+@router.post("/create_new_order", response_model=OrderResponse,
+             summary="Создать новый заказ")
 def create_order(
         db: Session = Depends(get_db),
         user: User = Depends(get_current_user)
@@ -94,7 +97,8 @@ def create_order(
     return db_order
 
 
-@router.post("/add_new_order_item", response_model=OrderResponse)
+@router.post("/add_new_order_item", response_model=OrderResponse,
+             summary="Добавить новый товар в заказ")
 def add_order_item(
         order_id: int,
         item: OrderItemCreate,
@@ -129,7 +133,8 @@ def add_order_item(
     return order
 
 
-@router.put("/update_order_item", response_model=OrderResponse)
+@router.put("/update_order_item", response_model=OrderResponse,
+            summary="Обновить данные о товаре в заказе")
 def update_order_item(
         order_id: int,
         item_id: int,
@@ -162,7 +167,8 @@ def update_order_item(
     return order
 
 
-@router.delete("/remove_order_item", response_model=OrderResponse)
+@router.delete("/remove_order_item", response_model=OrderResponse,
+               summary="Удалить товар из заказа")
 def remove_order_item(
         order_id: int,
         item_id: int,

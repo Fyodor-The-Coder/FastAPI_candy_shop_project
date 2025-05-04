@@ -15,7 +15,8 @@ router = APIRouter(tags=["Товары"])
 @router.post(
     "/create_a_new_product_item",
     response_model=ProductResponse,
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новый товар"
 )
 def create_product(
         product: ProductCreate,
@@ -31,7 +32,8 @@ def create_product(
     return db_product
 
 
-@router.get("/view_all_products", response_model=List[ProductShortInfo])
+@router.get("/view_all_products", response_model=List[ProductShortInfo],
+            summary="Просмотреть все товары")
 def get_all_products(db: Session = Depends(get_db)):
     """
     Получение списка всех товаров с краткой информацией
@@ -39,7 +41,8 @@ def get_all_products(db: Session = Depends(get_db)):
     return db.query(Product).all()
 
 
-@router.get("/get_product_by_ID", response_model=ProductResponse)
+@router.get("/get_product_by_ID", response_model=ProductResponse,
+            summary="Найти конкретный товар по ID")
 def get_product(product_id: int, db: Session = Depends(get_db)):
     """"
     Получение полной информации о товаре по ID
@@ -53,7 +56,8 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     return product
 
 
-@router.put("/update_product_by_ID/{product_id}", response_model=ProductResponse)
+@router.put("/update_product_by_ID/{product_id}", response_model=ProductResponse,
+            summary="Обновить данные о товаре")
 def update_product(
         product_id: int,
         product_data: ProductUpdate,
@@ -77,9 +81,8 @@ def update_product(
     db.refresh(db_product)
     return db_product
 
-
-
-@router.delete("/delete_product_by_ID", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/delete_product_by_ID", status_code=status.HTTP_204_NO_CONTENT,
+               summary="Удалить товар")
 def delete_product(
         product_id: int,
         db: Session = Depends(get_db),

@@ -13,7 +13,7 @@ from app.database import get_db
 router = APIRouter(tags=["Пользователи"])
 
 
-@router.post("/register", response_model=UserMessage)
+@router.post("/register", response_model=UserMessage, summary = "Регистрация")
 async def register_user(
         user_data: UserCreate,
         db: Session = Depends(get_db)
@@ -48,7 +48,7 @@ async def register_user(
     }
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, summary = "Авторизация")
 async def login(
         form_data: OAuth2PasswordRequestForm = Depends(),
         db: Session = Depends(get_db)
@@ -71,7 +71,7 @@ async def login(
     }
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, summary = "Данные профиля")
 async def get_current_user_profile(
         current_user: User = Depends(get_current_user)
 ):
