@@ -52,7 +52,7 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     return product
 
 
-@router.put("/update_product_by_ID", response_model=ProductResponse)
+@router.put("/update_product_by_ID/{product_id}", response_model=ProductResponse)
 def update_product(
         product_id: int,
         product_data: ProductUpdate,
